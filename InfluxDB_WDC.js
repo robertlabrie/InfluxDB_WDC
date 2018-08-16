@@ -182,18 +182,10 @@
 
         // Get the tags (items that can be used in a where clause) in the measurement
         var newM = influx_escape_char_for_URI(measurement[0]);
-        var queryString_tags = protocol + server + ':' + port + '/query?q=SHOW+TAG+KEYS+FROM+%22' + newM + '%22&db=' + db;
-        if (useAuth) {
-          setAuth();
-          queryString_tags += queryString_Auth;
-        }
+        queryString_tags = getInfluxURL('/query?q=SHOW+TAG+KEYS+FROM+%22' + newM + '%22&db=' + db);
 
         // Get fields/values
-        var queryString_fields = protocol + server + ':' + port + '/query?q=SHOW+FIELD+KEYS+FROM+%22' + newM + '%22&db=' + db;
-        if (useAuth) {
-          setAuth();
-          queryString_fields += queryString_Auth;
-        }
+        queryString_fields = getInfluxURL('/query?q=SHOW+FIELD+KEYS+FROM+%22' + newM + '%22&db=' + db);
 
         deferred_tags_and_fields.push(queryStringTags(index, queryString_tags));
         deferred_tags_and_fields.push(queryStringFields(index, queryString_fields));
@@ -282,11 +274,7 @@
 
   function buildCustomSqlString(db, _customSql) {
     var modifiedCustomSql = modifyLimitAndSlimit(_customSql);
-    var queryString = protocol + server + ':' + port + '/query?q=' + encodeURIComponent(modifiedCustomSql) + '&db=' + db;
-    if (useAuth) {
-      setAuth();
-      queryString += queryString_Auth;
-    }
+    queryString = getInfluxURL('/query?q=' + encodeURIComponent(modifiedCustomSql) + '&db=' + db);
 
     if (debug) console.log('Custom SQL url: ', queryString);
     return queryString;
@@ -570,6 +558,8 @@
             port = 8086;
           }
 
+          useBasicAuth = $('#useBasicAuth').is(":checked");
+
           if ($('#baseUrl')
           .val() !== '') {
             baseUrl = $('#baseUrl')
@@ -578,16 +568,17 @@
           port = null;
         }
 
-          // var queryString_DBs = protocol + server + ':' + port + '/query?q=SHOW+DATABASES';
-          // if (useAuth) {
-          //   setAuth();
-          //   queryString_DBs += queryString_Auth;
-          // }
-
           var queryString_DBs = getInfluxURL('/query?q=SHOW+DATABASES');
           if (debug) console.log('Retrieving databases with querystring: ', queryString_DBs);
           $.ajax({
-            crossDomain: true,
+            // crossDomain: true,
+            beforeSend: function (xhr) {
+              /* Authorization header */
+              if (useBasicAuth) {
+                xhr.setRequestHeader("Authorization", "Basic " + btoa(username + ':' + password));
+              }
+            },
+      
             url: queryString_DBs,
             dataType: 'json',
             timeout: 3000,
@@ -636,11 +627,7 @@
               .val());
           }
           else {
-            var queryString = protocol + server + ':' + port + '/query?q=SHOW+MEASUREMENTS&db=' + db;
-            if (useAuth) {
-              setAuth();
-              queryString += queryString_Auth;
-            }
+            queryString = getInfluxURL('/query?q=SHOW+MEASUREMENTS&db=' + db);
             getMeasurements(db, queryString);
           }
 
@@ -1183,10 +1170,11 @@
             interval_measure_string = json.interval_measure_string;
             aggregation = json.aggregation;
             baseUrl = json.baseUrl;
+            useBasicAuth = json.useBasicAuth;
 
             // set all HTML elements
             $('#baseUrl').val(json.baseUrl);
-
+            $('#useBasicAuth').prop('checked',json.useBasicAuth);
             $('#servername')
               .val(json.server);
             $('#servername')
