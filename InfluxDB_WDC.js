@@ -7,7 +7,10 @@
   var db = '';
   var debug = true; // set to true to enable JS Console debug messages
   var protocol = 'http://'; // default to non-encrypted.  To setup InfluxDB with https see https://docs.influxdata.com/influxdb/v1.2/administration/https_setup/
-  var useAuth = false; // bool to include/prompt for username/password
+  var baseUrl = '';
+  //TODO: reset this to false
+  var useAuth = true; // bool to include/prompt for username/password
+  var useBasicAuth = false;
   var username = '';
   var password = '';
   var queryString_Auth; // string to hold the &u=_user_&p=_pass_ part of the query string
@@ -637,6 +640,8 @@
       schema: schema,
       customSql: customSql,
       customSqlSplit: customSqlSplit,
+      useBasicAuth: useBasicAuth,
+      baseUrl: baseUrl
     };
     if (useAuth) {
       tableau.username = username;
@@ -1141,8 +1146,11 @@
             interval_measure = json.interval_measure;
             interval_measure_string = json.interval_measure_string;
             aggregation = json.aggregation;
+            baseUrl = json.baseUrl;
 
             // set all HTML elements
+            $('#baseUrl').val(json.baseUrl);
+
             $('#servername')
               .val(json.server);
             $('#servername')
@@ -1199,6 +1207,10 @@
                 .val(tableau.username);
               $('#password')
                 .val('');
+                if (json.useBasicAuth === true) {
+                  useBasicAuth = true;
+                  $('#useBasicAuth').prop('checked', true);
+                }
             } else {
               $('#authGroup')
                 .collapse('hide');
