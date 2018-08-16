@@ -7,9 +7,9 @@
   var db = '';
   var debug = true; // set to true to enable JS Console debug messages
   var protocol = 'http://'; // default to non-encrypted.  To setup InfluxDB with https see https://docs.influxdata.com/influxdb/v1.2/administration/https_setup/
-  var baseUrl = '';
+  var baseUrl = null;
   //TODO: reset this to false
-  var useAuth = true; // bool to include/prompt for username/password
+  var useAuth = false; // bool to include/prompt for username/password
   var useBasicAuth = false;
   var username = '';
   var password = '';
@@ -253,6 +253,32 @@
     return sql;
   }
 
+  function getInfluxURL(suffix)
+  {
+    var out = '';
+    //TODO:we'll need to plumb in some basic auth here
+    if (baseUrl)
+    {
+      //use the base URL and strip off trailing slash if added
+      out = baseUrl.replace(/\/$/, "");
+    }
+    else
+    {
+      out = protocol + server + ':' + port;
+    }
+    
+    //bolt on the suffix
+    out = out + suffix;
+    
+    if (useAuth) {
+      if (!useBasicAuth) {
+        // influx query string creds only if not basic auth
+        out = out + '&u=' + username + '&p=' + password;
+      }
+    }
+    if (debug) { console.log('getInfluxURL:' + out); }
+    return out;
+  }
 
   function buildCustomSqlString(db, _customSql) {
     var modifiedCustomSql = modifyLimitAndSlimit(_customSql);
@@ -544,14 +570,24 @@
             port = 8086;
           }
 
-          var queryString_DBs = protocol + server + ':' + port + '/query?q=SHOW+DATABASES';
-          if (useAuth) {
-            setAuth();
-            queryString_DBs += queryString_Auth;
-          }
+          if ($('#baseUrl')
+          .val() !== '') {
+            baseUrl = $('#baseUrl')
+            .val();
+        } else {
+          port = null;
+        }
 
+          // var queryString_DBs = protocol + server + ':' + port + '/query?q=SHOW+DATABASES';
+          // if (useAuth) {
+          //   setAuth();
+          //   queryString_DBs += queryString_Auth;
+          // }
+
+          var queryString_DBs = getInfluxURL('/query?q=SHOW+DATABASES');
           if (debug) console.log('Retrieving databases with querystring: ', queryString_DBs);
           $.ajax({
+            crossDomain: true,
             url: queryString_DBs,
             dataType: 'json',
             timeout: 3000,
