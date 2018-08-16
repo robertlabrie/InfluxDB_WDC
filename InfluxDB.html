@@ -81,6 +81,16 @@
 
 
         </div>
+        <div class="row">
+                <div class="input-group mb-3 col-sm">
+                        <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="useBasicAuth">
+                                <label class="form-check-label" for="useBasicAuth">
+                                  Use basic auth
+                                </label>
+                            </div>
+                </div>
+        </div>
     </div>
 
     <div class="row">
@@ -108,7 +118,18 @@
 
         </div>
     </div>
-
+    <div class="row">
+            <div class="span6" style="float: none; margin: 0 auto;">
+        <big>or</big>
+            </div>
+    </div>
+    <div class="row">
+            <div class="input-group mb-3 col-sm">
+                    <input type="text" class="form-control" aria-label="..." placeholder="Enter a base url to use for Influx requests - this overrides the server settings above" id="baseurl">
+                </div>
+        
+        
+    </div>
 
     <div class="row mb-3 dflex flex-row">
         <h4 class="col-sm">2. Databases</h4>
