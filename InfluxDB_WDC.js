@@ -60,6 +60,7 @@
     if (debug) console.log('Retrieving tags with query: %s', queryString_tags);
     // Create a JQuery Promise object
     var deferred = $.Deferred();
+    
     $.getJSON(queryString_tags, function (tags) {
       if (debug) console.log('tag query string for ' + index + ': ' + JSON.stringify(tags));
 
@@ -282,8 +283,20 @@
 
   function getCustomSqlSchema(queryString, originalSql) {
     var deferred = new $.Deferred();
+    if (debug) { console.log ('getCustomSqlSchema'); }
+    
+    //$.getJSON(queryString)
+    $.ajax({
+      url:queryString,
+      dataType:"json",
+      beforeSend: function (xhr) {
+        /* Authorization header */
+        if (useBasicAuth) {
+          xhr.setRequestHeader("Authorization", "Basic " + btoa(username + ':' + password));
+        }
+      }
 
-    $.getJSON(queryString)
+    })
       .done(function (resp) {
         var _schema = [];
         if (!resp.results[0].hasOwnProperty('series')) {
@@ -567,11 +580,11 @@
         } else {
           port = null;
         }
-
+        if (useAuth) { setAuth(); }
           var queryString_DBs = getInfluxURL('/query?q=SHOW+DATABASES');
           if (debug) console.log('Retrieving databases with querystring: ', queryString_DBs);
+          console.log('username:' + username + ' password:' + password);
           $.ajax({
-            // crossDomain: true,
             beforeSend: function (xhr) {
               /* Authorization header */
               if (useBasicAuth) {
@@ -706,7 +719,15 @@
 
       var tableData = [];
       var json = JSON.parse(tableau.connectionData);
-      var queryString = json.protocol + json.server + ':' + json.port + '/query';
+      // we can't use getInfluxUrl here so build it manually
+      if (json.baseUrl)
+      {
+        var queryString = json.baseUrl + '/query';
+      }
+      else
+      {
+        var queryString = json.protocol + json.server + ':' + json.port + '/query';
+      }
       var dataString = 'q=';
 
       if (json.queryType === 'custom') {
@@ -718,7 +739,10 @@
         dataString += '&chunked=true'; // add this to force chunking
 
         if (json.useAuth) {
-          dataString += '&u=' + tableau.username + '&p=' + tableau.password;
+          if (!json.useBasicAuth)
+          {
+            dataString += '&u=' + tableau.username + '&p=' + tableau.password;
+          }
         }
         if (debug) console.log('Fetch custom sql: ', queryString + '?' + dataString);
       }
@@ -758,10 +782,16 @@
         if (debug) console.log('Fetch data query string: ', queryString + '?' + dataString);
       }
 
-
       var jqxhr = $.ajax({
         dataType: 'text',
         url: queryString,
+        beforeSend: function (xhr) {
+          /* Authorization header */
+          if (json.useBasicAuth) {
+            xhr.setRequestHeader("Authorization", "Basic " + btoa(tableau.username + ':' + tableau.password));
+          }
+        },
+
         data: dataString,
         async: false
       })
