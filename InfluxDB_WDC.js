@@ -193,8 +193,9 @@
       }
 
     }).done(function (resp) {
+      console.log('retrieved all measurements: %o', resp);
       if (debug) console.log('retrieved all measurements: %o', resp);
-      if (debug) console.log('resp.results[0].series[0].values: %o', resp.results[0].series[0].values);
+      // if (debug) console.log('resp.results[0].series[0].values: %o', resp.results[0].series[0].values);
 
       // for each measurement, save the async function to a "factory" array
       var deferreds = (resp.results[0].series[0].values).map(function (measurement, index) {
