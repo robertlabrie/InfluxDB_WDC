@@ -8,7 +8,7 @@
   var debug = true; // set to true to enable JS Console debug messages
   var protocol = 'http://'; // default to non-encrypted.  To setup InfluxDB with https see https://docs.influxdata.com/influxdb/v1.2/administration/https_setup/
   var baseUrl = null;
-  //TODO: reset this to false
+  
   var useAuth = false; // bool to include/prompt for username/password
   var useBasicAuth = false;
   var username = '';
@@ -279,7 +279,7 @@
   function getInfluxURL(suffix)
   {
     var out = '';
-    //TODO:we'll need to plumb in some basic auth here
+
     if (baseUrl)
     {
       //use the base URL and strip off trailing slash if added
