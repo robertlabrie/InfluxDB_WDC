@@ -60,8 +60,17 @@
     if (debug) console.log('Retrieving tags with query: %s', queryString_tags);
     // Create a JQuery Promise object
     var deferred = $.Deferred();
-    
-    $.getJSON(queryString_tags, function (tags) {
+    $.ajax({
+      url:queryString_tags,
+      dataType:"json",
+      beforeSend: function (xhr) {
+        /* Authorization header */
+        if (useBasicAuth) {
+          xhr.setRequestHeader("Authorization", "Basic " + btoa(username + ':' + password));
+        }
+      }
+
+    }).done(function (tags) {
       if (debug) console.log('tag query string for ' + index + ': ' + JSON.stringify(tags));
 
       // this if statement checks to see if there is an empty series (just skip it)
@@ -98,7 +107,17 @@
   function queryStringFields(index, queryString_fields) {
     var deferred = $.Deferred();
     if (debug) console.log('Retrieving fields with query: %s', queryString_fields);
-    $.getJSON(queryString_fields, function (fields) {
+    $.ajax({
+      url:queryString_fields,
+      dataType:"json",
+      beforeSend: function (xhr) {
+        /* Authorization header */
+        if (useBasicAuth) {
+          xhr.setRequestHeader("Authorization", "Basic " + btoa(username + ':' + password));
+        }
+      }
+
+    }).done(function (fields) {
       // this if statement checks to see if there is an empty series (just skip it)
       // empty resultset: tag query string for 7: {"results":[{"statement_id":0}]}
       if (fields.results[0].hasOwnProperty('series')) {
@@ -163,7 +182,17 @@
   function getMeasurements(db, queryString) {
     // Get all measurements (aka Tables) from the DB
 
-    $.getJSON(queryString, function (resp) {
+    $.ajax({
+      url:queryString,
+      dataType:"json",
+      beforeSend: function (xhr) {
+        /* Authorization header */
+        if (useBasicAuth) {
+          xhr.setRequestHeader("Authorization", "Basic " + btoa(username + ':' + password));
+        }
+      }
+
+    }).done(function (resp) {
       if (debug) console.log('retrieved all measurements: %o', resp);
       if (debug) console.log('resp.results[0].series[0].values: %o', resp.results[0].series[0].values);
 
@@ -285,7 +314,6 @@
     var deferred = new $.Deferred();
     if (debug) { console.log ('getCustomSqlSchema'); }
     
-    //$.getJSON(queryString)
     $.ajax({
       url:queryString,
       dataType:"json",
