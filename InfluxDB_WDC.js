@@ -612,7 +612,6 @@
         if (useAuth) { setAuth(); }
           var queryString_DBs = getInfluxURL('/query?q=SHOW+DATABASES');
           if (debug) console.log('Retrieving databases with querystring: ', queryString_DBs);
-          console.log('username:' + username + ' password:' + password);
           $.ajax({
             beforeSend: function (xhr) {
               /* Authorization header */
